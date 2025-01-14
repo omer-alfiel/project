@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TravelBloom</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Basic Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('Travel.jpg'); /* Set background image for the entire website */
+            background-size: cover;
+            background-position: center;
+            color: black; /* Updated text color */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100vh; /* Ensure body takes full height */
+        }
+        nav {
+            background-color: rgba(51, 51, 51, 0.8); /* Make nav background semi-transparent */
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        nav input {
+            padding: 5px;
+        }
+        nav button {
+            padding: 5px 10px;
+        }
+        .hero {
+            background: none; /* Remove background from hero section */
+            text-align: center;
+            padding: 50px 20px;
+        }
+        .social-icons {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .social-icons a {
+            color: #333;
+            text-decoration: none;
+            font-size: 24px;
+            margin: 0 10px;
+        }
+        .social-icons a:hover {
+            color: #007bff;
+        }
+        #results {
+            padding: 20px;
+        }
+        #results div {
+            margin: 20px 0;
+            text-align: center;
+        }
+        #results img {
+            width: 200px;
+            height: 150px;
+            object-fit: cover;
+        }
+        #introduction {
+            padding: 20px;
+            text-align: center;
+            flex: 1; /* Allow introduction to take remaining space */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: rgb(32, 31, 31); /* Change text color to black */
+            background-color: rgba(255, 255, 255, 0.8); /* Add background color with transparency */
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div>
+            <a href="#">Home</a>
+            <a href="about_us.html">About Us</a> <!-- Updated link -->
+            <a href="#">Contact Us</a>
+        </div>
+        <div>
+            <input type="text" id="search-bar" placeholder="Search for recommendations...">
+            <button id="search-btn">Search</button>
+            <button id="reset-btn">Reset</button>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <h1>Welcome to TravelBloom</h1>
+        <p>Your ultimate travel recommendation site.</p>
+    </div>
+
+    <div id="results"></div> <!-- Move results section up -->
+
+    <div id="introduction">
+        <h2>About TravelBloom</h2>
+        <p>TravelBloom is your go-to platform for discovering the best travel destinations around the world. Whether you're looking for adventure, relaxation, or cultural experiences, we have recommendations tailored just for you.</p>
+        <p>Our mission is to inspire and guide travelers to explore new places and create unforgettable memories. Join us on this journey and start planning your next adventure today!</p>
+    </div>
+
+    <div class="social-icons">
+        <a href="https://facebook.com" target="_blank">
+            <i class="fa-brands fa-facebook"></i>
+        </a>
+        <a href="https://twitter.com" target="_blank">
+            <i class="fa-brands fa-twitter"></i>
+        </a>
+    </div>
+
+    <script src="travel_recommendation.js"></script> <!-- Ensure this line is present -->
+    <script>
+        document.getElementById('search-btn').addEventListener('click', function() {
+            const query = document.getElementById('search-bar').value;
+            // Implement search functionality here
+            console.log('Search for:', query);
+            fetchRecommendations(query);
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', function() {
+            document.getElementById('search-bar').value = '';
+            // Implement reset functionality here
+            console.log('Search bar reset');
+            document.getElementById('results').innerHTML = ''; // Clear results
+        });
+
+        async function fetchRecommendations(query) {
+            try {
+                const response = await fetch('travel_recommendation_api.json');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                displayRecommendations(query, data);
+            } catch (error) {
+                console.error('Fetch error:', error);
+                document.getElementById('results').innerHTML = '<p>Error fetching recommendations. Please try again later.</p>';
+            }
+        }
+
+        function displayRecommendations(query, data) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = ''; // Clear previous results
+
+            const recommendations = [];
+
+            // Search in countries
+            data.countries.forEach(country => {
+                country.cities.forEach(city => {
+                    if (city.name.toLowerCase().includes(query.toLowerCase())) {
+                        recommendations.push({
+                            name: city.name,
+                            image: city.imageUrl,
+                            description: city.description
+                        });
+                    }
+                });
+            });
+
+            // Search in temples
+            data.temples.forEach(temple => {
+                if (temple.name.toLowerCase().includes(query.toLowerCase())) {
+                    recommendations.push({
+                        name: temple.name,
+                        image: temple.imageUrl,
+                        description: temple.description
+                    });
+                }
+            });
+
+            // Search in beaches
+            data.beaches.forEach(beach => {
+                if (beach.name.toLowerCase().includes(query.toLowerCase())) {
+                    recommendations.push({
+                        name: beach.name,
+                        image: beach.imageUrl,
+                        description: beach.description
+                    });
+                }
+            });
+
+            if (recommendations.length === 0) {
+                resultsDiv.innerHTML = '<p>No recommendations found for your search.</p>';
+            } else {
+                recommendations.forEach(rec => {
+                    const recDiv = document.createElement('div');
+                    recDiv.innerHTML = `<h3>${rec.name}</h3><img src="${rec.image}" alt="${rec.name}"><p>${rec.description}</p>`;
+                    resultsDiv.appendChild(recDiv);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
